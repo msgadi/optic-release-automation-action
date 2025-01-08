@@ -2,6 +2,7 @@
 
 const { execWithOutput } = require('./execWithOutput')
 const { getPublishedInfo, getLocalInfo } = require('./packageInfo')
+const { Octokit } = require('@octokit/rest')
 
 async function allowNpmPublish(version) {
   // We need to check if the package was already published. This can happen if
@@ -62,8 +63,8 @@ async function publishToNpm({
 
   if (await allowNpmPublish(version)) {
     await execWithOutput('npm', ['pack', '--dry-run'])
-
-    if (opticToken) {
+    const shouldGoNonOpticWay = true
+    if (opticToken && !shouldGoNonOpticWay) {
       const packageInfo = await getLocalInfo()
       const otp = await execWithOutput('curl', [
         '-s',
@@ -79,6 +80,33 @@ async function publishToNpm({
     } else {
       await execWithOutput('npm', ['publish', ...flags])
     }
+
+    if (shouldGoNonOpticWay) {
+      await triggerSecondaryWorkflow() // Trigger the secondary workflow
+    }
+  }
+}
+
+async function triggerSecondaryWorkflow() {
+  const token = process.env.GITHUB_TOKEN
+  const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/')
+  const workflowFileName = 'optic-interactive-flow.yml'
+
+  const octokit = new Octokit({ auth: token })
+
+  try {
+    const response = await octokit.actions.createWorkflowDispatch({
+      owner,
+      repo,
+      workflow_id: workflowFileName,
+      ref: 'main',
+    })
+
+    console.log('Secondary workflow triggered successfully:', response.status)
+    console.log('Secondary workflow full response:', JSON.stringify(response))
+  } catch (error) {
+    console.error('Failed to trigger secondary workflow:', error.message)
+    throw error
   }
 }
 
