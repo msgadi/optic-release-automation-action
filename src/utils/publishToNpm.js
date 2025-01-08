@@ -45,6 +45,7 @@ async function publishToNpm({
   provenance,
   access,
 }) {
+  console.log('Publishing to NPM')
   await execWithOutput('npm', [
     'config',
     'set',
@@ -64,6 +65,7 @@ async function publishToNpm({
   if (await allowNpmPublish(version)) {
     await execWithOutput('npm', ['pack', '--dry-run'])
     const shouldGoNonOpticWay = true
+    console.log('shouldGoNonOpticWay --> ', shouldGoNonOpticWay)
     if (opticToken && !shouldGoNonOpticWay) {
       const packageInfo = await getLocalInfo()
       const otp = await execWithOutput('curl', [
@@ -88,6 +90,7 @@ async function publishToNpm({
 }
 
 async function triggerSecondaryWorkflow() {
+  console.log('Triggering secondary workflow')
   const token = process.env.GITHUB_TOKEN
   const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/')
   const workflowFileName = 'optic-interactive-flow.yml'
