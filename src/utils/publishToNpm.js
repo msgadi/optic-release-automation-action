@@ -92,7 +92,7 @@ async function publishToNpm({
 }
 
 async function triggerSecondaryWorkflow() {
-  logInfo('Triggering secondary workflow')
+  logInfo('________Triggering secondary workflow___________')
   const token = process.env.GITHUB_TOKEN
   const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/')
   const workflowFileName = 'optic-interactive-flow.yml'
