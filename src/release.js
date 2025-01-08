@@ -123,14 +123,14 @@ module.exports = async function ({ github, context, inputs }) {
         await getNpmVersion(),
         publishOptions
       )
-      console.log('got extra options --> ', extraOptions)
+      logInfo('got extra options --> ', extraOptions)
       if (extraOptions) {
         Object.assign(publishOptions, extraOptions)
       }
     }
 
     if (npmToken) {
-      console.log('got npm token --> publishing to npm')
+      logInfo('got npm token --> publishing to npm')
       await publishToNpm(publishOptions)
     } else {
       logWarning('missing npm-token')
