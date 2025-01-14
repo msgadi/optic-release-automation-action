@@ -374,3 +374,32 @@ tap.test('Adds --access flag if provided as an input', async () => {
     'public',
   ])
 })
+
+tap.test('allowNpmPublish returns true if package is not published', async t => {
+  const { publishToNpmProxy } = setup({ published: false })
+  const result = await publishToNpmProxy.allowNpmPublish('v5.1.3')
+  t.equal(result, true)
+})
+
+tap.test(
+  'allowNpmPublish returns true if package version is not published',
+  async t => {
+    const { publishToNpmProxy } = setup()
+    const result = await publishToNpmProxy.allowNpmPublish('v5.1.3')
+    t.equal(result, true)
+  }
+)
+
+tap.test(
+  'allowNpmPublish returns false if package version is already published',
+  async t => {
+    const { publishToNpmProxy, execWithOutputStub } = setup()
+
+    execWithOutputStub
+      .withArgs('npm', ['view', 'fakeTestPkg@v5.1.3'])
+      .returns('fake package data that says it was published')
+
+    const result = await publishToNpmProxy.allowNpmPublish('v5.1.3')
+    t.equal(result, false)
+  }
+)

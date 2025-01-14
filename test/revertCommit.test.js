@@ -31,3 +31,33 @@ tap.test('Revert commit', async t => {
     `${baseRef}`,
   ])
 })
+
+tap.test('Revert commit with different baseRef', async t => {
+  const { revertCommitProxy, execWithOutputStub } = setup()
+  const baseRef = 'develop'
+  await revertCommitProxy.revertCommit(baseRef)
+
+  t.ok(execWithOutputStub.callCount === 2)
+
+  sinon.assert.calledWithExactly(execWithOutputStub, 'git', ['revert', 'HEAD'])
+  sinon.assert.calledWithExactly(execWithOutputStub, 'git', [
+    'push',
+    'origin',
+    `${baseRef}`,
+  ])
+})
+
+tap.test('Revert commit with empty baseRef', async t => {
+  const { revertCommitProxy, execWithOutputStub } = setup()
+  const baseRef = ''
+  await revertCommitProxy.revertCommit(baseRef)
+
+  t.ok(execWithOutputStub.callCount === 2)
+
+  sinon.assert.calledWithExactly(execWithOutputStub, 'git', ['revert', 'HEAD'])
+  sinon.assert.calledWithExactly(execWithOutputStub, 'git', [
+    'push',
+    'origin',
+    `${baseRef}`,
+  ])
+})

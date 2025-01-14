@@ -93,3 +93,118 @@ test('Should return truncated PR body', async t => {
     )
   )
 })
+
+test('Should return empty array for release notes without PR numbers', async t => {
+  const testReleaseNotes = `
+    ## Whats Changed\n +
+    * chore 15 by @people\n
+    * fix 26 by @people\n
+    \n
+    \n
+    ## New Contributors\n
+    * @people made their first contribution\n
+    \n
+    \n
+    ## New documentation\n
+    * Link: https://somewhere.com/on/the/internet
+    \n
+    \n
+    **Full Changelog**: https://github.com/owner/repo/compare/v1.0.20...v1.1.0
+`
+
+  const result = getPrNumbersFromReleaseNotes(testReleaseNotes)
+  const expected = []
+
+  t.same(result, expected)
+})
+
+test('Should return PR body without artifact', async t => {
+  const tpl = fs.readFileSync(path.join(__dirname, '../src/pr.tpl'), 'utf8')
+
+  const testReleaseNotes = `
+    ## Whats Changed\n +
+    * chore 15 by @people in https://github.com/owner/repo/pull/13\n
+    * chore 18 by @people in https://github.com/owner/repo/pull/15\n
+    * chore 19 by @people in https://github.com/owner/repo/pull/16\n
+    * chore 21 by @people in https://github.com/owner/repo/pull/18\n
+    * fix 26 by @people in https://github.com/owner/repo/pull/42\n
+    * feature 30 by @people in https://github.com/owner/repo/pull/50\n
+    * fix 27 by @people in https://github.com/owner/repo/pull/52\n
+    * fix 32 by @people in https://github.com/owner/repo/pull/53\n
+    \n
+    \n
+    ## New Contributors\n
+    * @people made their first contribution in https://github.com/owner/repo/pull/13\n
+    * @people made their first contribution in https://github.com/owner/repo/pull/16\n
+    * @people made their first contribution in https://github.com/owner/repo/pull/42\n
+    * @people made their first contribution in https://github.com/owner/repo/pull/53\n
+    \n
+    \n
+    ## New documentation\n
+    * Link: https://somewhere.com/on/the/internet
+    \n
+    \n
+    **Full Changelog**: https://github.com/owner/repo/compare/v1.0.20...v1.1.0
+`
+
+  const prBody = getPRBody(_template(tpl), {
+    newVersion: '1.0.0',
+    draftRelease: { id: 1, body: testReleaseNotes },
+    inputs: [],
+    author: 'test',
+    artifact: null,
+  })
+
+  t.ok(
+    prBody.includes(
+      `<release-meta>{"id":1,"version":"1.0.0"}</release-meta>`
+    )
+  )
+  t.notOk(prBody.includes('An artifact will be attached to the release'))
+})
+
+test('Should return PR body with artifact', async t => {
+  const tpl = fs.readFileSync(path.join(__dirname, '../src/pr.tpl'), 'utf8')
+
+  const testReleaseNotes = `
+    ## Whats Changed\n +
+    * chore 15 by @people in https://github.com/owner/repo/pull/13\n
+    * chore 18 by @people in https://github.com/owner/repo/pull/15\n
+    * chore 19 by @people in https://github.com/owner/repo/pull/16\n
+    * chore 21 by @people in https://github.com/owner/repo/pull/18\n
+    * fix 26 by @people in https://github.com/owner/repo/pull/42\n
+    * feature 30 by @people in https://github.com/owner/repo/pull/50\n
+    * fix 27 by @people in https://github.com/owner/repo/pull/52\n
+    * fix 32 by @people in https://github.com/owner/repo/pull/53\n
+    \n
+    \n
+    ## New Contributors\n
+    * @people made their first contribution in https://github.com/owner/repo/pull/13\n
+    * @people made their first contribution in https://github.com/owner/repo/pull/16\n
+    * @people made their first contribution in https://github.com/owner/repo/pull/42\n
+    * @people made their first contribution in https://github.com/owner/repo/pull/53\n
+    \n
+    \n
+    ## New documentation\n
+    * Link: https://somewhere.com/on/the/internet
+    \n
+    \n
+    **Full Changelog**: https://github.com/owner/repo/compare/v1.0.20...v1.1.0
+`
+
+  const prBody = getPRBody(_template(tpl), {
+    newVersion: '1.0.0',
+    draftRelease: { id: 1, body: testReleaseNotes },
+    inputs: [],
+    author: 'test',
+    artifact: { label: 'artifact.zip', url: 'https://artifact.url' },
+  })
+
+  t.ok(
+    prBody.includes(
+      `<release-meta>{"id":1,"version":"1.0.0"}</release-meta>`
+    )
+  )
+  t.ok(prBody.includes('An artifact will be attached to the release'))
+  t.ok(prBody.includes('[artifact.zip](https://artifact.url)'))
+})

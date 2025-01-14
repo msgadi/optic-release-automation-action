@@ -985,3 +985,58 @@ tap.test('Should not fail when release is not a draft', async () => {
 
   sinon.assert.notCalled(stubs.coreStub.setFailed)
 })
+
+tap.test('Should call publishToNpm function correctly', async () => {
+  const { release, stubs } = setup()
+  await release({
+    ...DEFAULT_ACTION_DATA,
+    inputs: {
+      'app-name': APP_NAME,
+      'npm-token': 'a-token',
+      'publish-to-npm': 'true',
+    },
+  })
+
+  sinon.assert.calledWith(
+    stubs.publishToNpmStub,
+    DEFAULT_ACTION_DATA.github,
+    true,
+    'test',
+    'repo',
+    { body: 'test_body', html_url: 'test_url' }
+  )
+})
+
+tap.test(
+  'Should not call publishToNpm function when feature is disabled',
+  async () => {
+    const { release, stubs } = setup()
+    await release({
+      ...DEFAULT_ACTION_DATA,
+      inputs: {
+        'app-name': APP_NAME,
+        'npm-token': 'a-token',
+        'publish-to-npm': 'false',
+      },
+    })
+
+    sinon.assert.notCalled(stubs.publishToNpmStub)
+  }
+)
+
+tap.test('Should not reject when publishToNpm fails', async t => {
+  const { release, stubs } = setup()
+
+  stubs.publishToNpmStub.rejects()
+
+  await t.resolves(
+    release({
+      ...DEFAULT_ACTION_DATA,
+      inputs: {
+        'app-name': APP_NAME,
+        'npm-token': 'a-token',
+        'publish-to-npm': 'true',
+      },
+    })
+  )
+})

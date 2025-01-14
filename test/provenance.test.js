@@ -146,3 +146,27 @@ tap.test(
   'getProvenanceOptions fails fast if NPM version unavailable',
   async t => t.rejects(getProvenanceOptions, 'Current npm version not provided')
 )
+
+tap.test('getProvenanceOptions returns extra options for valid scenarios', async t => {
+  const npmVersion = '9.6.1'
+  const publishOptions = { access: 'public' }
+  const extraOptions = await getProvenanceOptions(npmVersion, publishOptions)
+  t.same(extraOptions, { access: 'public' })
+})
+
+tap.test('getProvenanceOptions throws error for unsupported NPM version', async t => {
+  const npmVersion = '9.4.0'
+  const publishOptions = { access: 'public' }
+  await t.rejects(getProvenanceOptions(npmVersion, publishOptions), {
+    message: `Provenance requires NPM ${MINIMUM_VERSION}`,
+  })
+})
+
+tap.test('getProvenanceOptions throws error for missing permissions', async t => {
+  const npmVersion = '9.5.0'
+  const publishOptions = { access: 'public' }
+  sinon.stub(process, 'env').value({})
+  await t.rejects(getProvenanceOptions(npmVersion, publishOptions), {
+    message: 'Provenance generation in GitHub Actions requires "write" access to the "id-token" permission',
+  })
+})

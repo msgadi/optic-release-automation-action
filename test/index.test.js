@@ -355,3 +355,49 @@ tap.test('semver-auto: should default to patch if auto bump fails', async t => {
   ])
   t.same(newVersion, '3.0.0')
 })
+
+tap.test('runAction should handle workflow_dispatch event', async t => {
+  const { action, stubs } = buildStubbedAction()
+  const inputs = { 'npm-token': 'a-token' }
+  const context = {
+    eventName: 'workflow_dispatch',
+    repo: { repo: {}, owner: {} },
+    payload: { action: 'closed', pull_request: { user: { login: 'optic-release-automation[bot]' }, title: PR_TITLE_PREFIX } }
+  }
+
+  await action({ inputs, context })
+
+  sinon.assert.notCalled(stubs.logStub.logError)
+  sinon.assert.calledOnce(stubs.openPrStub)
+})
+
+tap.test('runAction should handle pull_request event', async t => {
+  const { action, stubs } = buildStubbedAction()
+  const inputs = { 'npm-token': 'a-token' }
+  const context = {
+    eventName: 'pull_request',
+    repo: { repo: {}, owner: {} },
+    payload: { action: 'closed', pull_request: { user: { login: 'optic-release-automation[bot]' }, title: PR_TITLE_PREFIX } }
+  }
+
+  await action({ inputs, context })
+
+  sinon.assert.notCalled(stubs.logStub.logError)
+  sinon.assert.calledOnce(stubs.releaseStub)
+})
+
+tap.test('runAction should log error for unsupported event', async t => {
+  const { action, stubs } = buildStubbedAction()
+  const inputs = { 'npm-token': 'a-token' }
+  const context = {
+    eventName: 'unsupported_event',
+    repo: { repo: {}, owner: {} },
+    payload: { action: 'closed', pull_request: { user: { login: 'optic-release-automation[bot]' }, title: PR_TITLE_PREFIX } }
+  }
+
+  await action({ inputs, context })
+
+  sinon.assert.calledWithExactly(stubs.logStub.logError, 'Unsupported event')
+  sinon.assert.notCalled(stubs.openPrStub)
+  sinon.assert.notCalled(stubs.releaseStub)
+})
