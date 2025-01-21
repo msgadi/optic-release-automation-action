@@ -1,6 +1,6 @@
 'use strict'
 
-const tap = require('tap')
+const { test } = require('node:test')
 const proxyquire = require('proxyquire')
 const sinon = require('sinon')
 const core = require('@actions/core')
@@ -90,7 +90,7 @@ function setup() {
   }
 }
 
-tap.afterEach(() => {
+test.afterEach(() => {
   sinon.restore()
 })
 
@@ -119,7 +119,7 @@ const DEFAULT_ACTION_DATA = {
   },
 }
 
-tap.test(
+test(
   'should trigger an error when the packageVersion is missing',
   async t => {
     const { openPr } = setup()
@@ -134,7 +134,7 @@ tap.test(
   }
 )
 
-tap.test('should trigger an error if the branch already exists', async t => {
+test('should trigger an error if the branch already exists', async t => {
   const { openPr, stubs } = setup()
 
   const actionData = {
@@ -152,7 +152,7 @@ tap.test('should trigger an error if the branch already exists', async t => {
   )
 })
 
-tap.test('should create a new git branch', async () => {
+test('should create a new git branch', async () => {
   const { openPr, stubs } = setup()
   await openPr(DEFAULT_ACTION_DATA)
 
@@ -176,7 +176,7 @@ tap.test('should create a new git branch', async () => {
   ])
 })
 
-tap.test('should handle custom commit messages', async () => {
+test('should handle custom commit messages', async () => {
   const { openPr, stubs } = setup()
   const data = clone(DEFAULT_ACTION_DATA)
   data.inputs['commit-message'] =
@@ -202,7 +202,7 @@ tap.test('should handle custom commit messages', async () => {
   ])
 })
 
-tap.test('should work with a custom version-prefix', async () => {
+test('should work with a custom version-prefix', async () => {
   const { openPr, stubs } = setup()
 
   const prData = {
@@ -266,7 +266,7 @@ tap.test('should work with a custom version-prefix', async () => {
   })
 })
 
-tap.test('should call the release endpoint with a new version', async () => {
+test('should call the release endpoint with a new version', async () => {
   const { openPr, stubs } = setup()
   await openPr(DEFAULT_ACTION_DATA)
 
@@ -286,7 +286,7 @@ tap.test('should call the release endpoint with a new version', async () => {
   )
 })
 
-tap.test(
+test(
   'should trigger an error if the release endpoint responds with an invalid draft release',
   async t => {
     const { openPr, stubs } = setup()
@@ -300,7 +300,7 @@ tap.test(
   }
 )
 
-tap.test('should call the PR endpoint with a new version', async () => {
+test('should call the PR endpoint with a new version', async () => {
   const { openPr, stubs } = setup()
   await openPr(DEFAULT_ACTION_DATA)
 
@@ -350,7 +350,7 @@ tap.test('should call the PR endpoint with a new version', async () => {
   )
 })
 
-tap.test(
+test(
   'should create the correct release for a version with no minor',
   async () => {
     const localVersion = '2.0.0'
@@ -408,7 +408,7 @@ tap.test(
   }
 )
 
-tap.test(
+test(
   'should create the correct release for a version with no major',
   async () => {
     const localVersion = '0.0.5'
@@ -466,7 +466,7 @@ tap.test(
   }
 )
 
-tap.test('should delete branch in case of pr failure', async t => {
+test('should delete branch in case of pr failure', async t => {
   const localVersion = '0.0.5'
   const { openPr, stubs } = setup()
   const { context, inputs } = DEFAULT_ACTION_DATA
@@ -485,7 +485,7 @@ tap.test('should delete branch in case of pr failure', async t => {
   t.pass('branch deleted')
 })
 
-tap.test('Should call core.setFailed if it fails to create a PR', async t => {
+test('Should call core.setFailed if it fails to create a PR', async t => {
   const branchName = `release/v${TEST_VERSION}`
 
   const { openPr, stubs } = setup()
@@ -502,7 +502,7 @@ tap.test('Should call core.setFailed if it fails to create a PR', async t => {
   t.pass('failed called')
 })
 
-tap.test(
+test(
   'should call attachArtifact if artifact-path input is present',
   async () => {
     const { openPr, stubs } = setup()
@@ -514,7 +514,7 @@ tap.test(
   }
 )
 
-tap.test('should not open Pr if create release draft fails', async t => {
+test('should not open Pr if create release draft fails', async t => {
   const { openPr, stubs } = setup()
   stubs.callApiStub.throws({ message: 'error message' })
 
@@ -524,7 +524,7 @@ tap.test('should not open Pr if create release draft fails', async t => {
   )
 })
 
-tap.test(
+test(
   'should generate release notes if the latest release has not been found -> first release',
   async () => {
     const { openPr, stubs } = setup()
@@ -549,7 +549,7 @@ tap.test(
   }
 )
 
-tap.test(
+test(
   'should automatically generate release notes if an error occurred while generating the specific release notes',
   async () => {
     const { openPr, stubs } = setup()
@@ -576,7 +576,7 @@ tap.test(
   }
 )
 
-tap.test(
+test(
   'should retrieve the specified base-tag release and POST a release with the generated release notes',
   async () => {
     const { openPr, stubs } = setup()

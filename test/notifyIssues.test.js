@@ -1,8 +1,8 @@
 'use strict'
 
+const { test } = require('node:test')
 const proxyquire = require('proxyquire')
 const sinon = require('sinon')
-const tap = require('tap')
 
 const pullsGetStub = sinon.stub()
 const createCommentStub = sinon.stub()
@@ -37,11 +37,11 @@ function setup() {
   return { notifyIssues }
 }
 
-tap.afterEach(() => {
+test.afterEach(() => {
   sinon.restore()
 })
 
-tap.test('Should not call createComment if no linked issues', async () => {
+test('Should not call createComment if no linked issues', async () => {
   const { notifyIssues } = setup()
 
   const releaseNotes = `
@@ -61,7 +61,7 @@ tap.test('Should not call createComment if no linked issues', async () => {
   sinon.assert.notCalled(createCommentStub)
 })
 
-tap.test(
+test(
   'Should not call createComment if linked issue belongs to external repo',
   async () => {
     const { notifyIssues } = setup()
@@ -106,7 +106,7 @@ tap.test(
   }
 )
 
-tap.test(
+test(
   'Should call createComment with correct arguments for linked issues with npm link',
   async () => {
     const { notifyIssues } = setup()
@@ -180,7 +180,7 @@ tap.test(
   }
 )
 
-tap.test(
+test(
   'Should call createComment with correct arguments for linked issues without npm link',
   async () => {
     const { notifyIssues } = setup()
@@ -253,7 +253,7 @@ tap.test(
   }
 )
 
-tap.test("Shouldn't fail if createComment on an issue fails", async t => {
+test("Shouldn't fail if createComment on an issue fails", async t => {
   const { notifyIssues } = setup()
 
   const releaseNotes = `

@@ -1,6 +1,6 @@
 'use strict'
 
-const tap = require('tap')
+const { test, mock } = require('node:test')
 const { ZIP_EXTENSION } = require('../src/const')
 
 const DEFAULT_INPUT_DATA = {
@@ -10,7 +10,7 @@ const DEFAULT_INPUT_DATA = {
 }
 
 const setup = ({ throwsError }) => {
-  const attachArtifactModule = tap.mock('../src/utils/artifact.js', {
+  const attachArtifactModule = mock('../src/utils/artifact.js', {
     '../src/utils/archiver.js': {
       archiveItem: async () => null,
     },
@@ -47,27 +47,27 @@ const setup = ({ throwsError }) => {
   return { attachArtifactModule }
 }
 
-tap.test(
+test(
   'attach artifact does not throw errors with proper inputs',
-  async t => {
+  async () => {
     const { attachArtifactModule } = setup({ throwsError: false })
 
     const { artifactPath, releaseId, token } = DEFAULT_INPUT_DATA
 
-    await t.resolves(
+    await assert.doesNotReject(
       attachArtifactModule.attach(artifactPath, releaseId, token)
     )
   }
 )
 
-tap.test(
+test(
   'attach artifact does not throw errors with path ending with .zip',
-  async t => {
+  async () => {
     const { attachArtifactModule } = setup({ throwsError: false })
 
     const { artifactPath, releaseId, token } = DEFAULT_INPUT_DATA
 
-    await t.resolves(
+    await assert.doesNotReject(
       attachArtifactModule.attach(
         artifactPath + ZIP_EXTENSION,
         releaseId,
@@ -77,10 +77,10 @@ tap.test(
   }
 )
 
-tap.test(
+test(
   'attach artifact throws an error if build folder not found',
-  async t => {
-    const artifactModule = tap.mock('../src/utils/artifact.js', {
+  async () => {
+    const artifactModule = mock('../src/utils/artifact.js', {
       '../src/utils/archiver.js': {
         archiveItem: async () => {
           throw new Error('file not found')
@@ -90,25 +90,25 @@ tap.test(
 
     const { artifactPath, releaseId, token } = DEFAULT_INPUT_DATA
 
-    await t.rejects(artifactModule.attach(artifactPath, releaseId, token))
+    await assert.rejects(artifactModule.attach(artifactPath, releaseId, token))
   }
 )
 
-tap.test(
+test(
   'attach artifact throws an error if an error occurres during the asset upload',
-  async t => {
+  async () => {
     const { attachArtifactModule } = setup({ throwsError: true })
 
     const { artifactPath, releaseId, token } = DEFAULT_INPUT_DATA
 
-    await t.rejects(attachArtifactModule.attach(artifactPath, releaseId, token))
+    await assert.rejects(attachArtifactModule.attach(artifactPath, releaseId, token))
   }
 )
 
-tap.test(
+test(
   'attach artifact throws an error if the upload asset state is not uploaded',
-  async t => {
-    const artifactModule = tap.mock('../src/utils/artifact.js', {
+  async () => {
+    const artifactModule = mock('../src/utils/artifact.js', {
       '../src/utils/archiver.js': {
         archiveItem: async () => null,
       },
@@ -139,6 +139,6 @@ tap.test(
 
     const { artifactPath, releaseId, token } = DEFAULT_INPUT_DATA
 
-    await t.rejects(artifactModule.attach(artifactPath, releaseId, token))
+    await assert.rejects(artifactModule.attach(artifactPath, releaseId, token))
   }
 )

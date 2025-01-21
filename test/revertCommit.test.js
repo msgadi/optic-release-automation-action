@@ -1,6 +1,6 @@
 'use strict'
 
-const tap = require('tap')
+const { test } = require('node:test')
 const sinon = require('sinon')
 const proxyquire = require('proxyquire')
 
@@ -13,11 +13,11 @@ const setup = () => {
   return { execWithOutputStub, revertCommitProxy }
 }
 
-tap.afterEach(() => {
+test.afterEach(() => {
   sinon.restore()
 })
 
-tap.test('Revert commit', async t => {
+test('Revert commit', async t => {
   const { revertCommitProxy, execWithOutputStub } = setup()
   const baseRef = 'master'
   await revertCommitProxy.revertCommit(baseRef)

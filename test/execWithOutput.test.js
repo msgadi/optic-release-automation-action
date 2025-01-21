@@ -1,6 +1,7 @@
 'use strict'
 
-const tap = require('tap')
+const { test } = require('node:test')
+const assert = require('assert')
 const sinon = require('sinon')
 const proxyquire = require('proxyquire')
 const { redactConfidentialArguments } = require('../src/utils/execWithOutput')
@@ -18,13 +19,13 @@ const setup = () => {
 }
 const { execStub, execWithOutputModule } = setup()
 
-tap.afterEach(() => {
+test.afterEach(() => {
   sinon.restore()
 })
 
-tap.test(
+test(
   'resolves with output of the exec command if exit code is 0',
-  async t => {
+  async () => {
     const output = 'output'
 
     execStub.callsFake((_, __, options) => {
@@ -33,14 +34,14 @@ tap.test(
       return Promise.resolve(0)
     })
 
-    await t.resolves(execWithOutputModule.execWithOutput('ls', ['-al']), output)
+    await assert.doesNotReject(execWithOutputModule.execWithOutput('ls', ['-al']), output)
     sinon.assert.calledWithExactly(execStub, 'ls', ['-al'], sinon.match({}))
   }
 )
 
-tap.test(
+test(
   'Throws with output of the exec command if exit code is not 0',
-  async t => {
+  async () => {
     const output = 'output'
 
     execStub.callsFake((_, __, options) => {
@@ -48,7 +49,7 @@ tap.test(
       return Promise.reject(new Error())
     })
 
-    await t.rejects(
+    await assert.rejects(
       () => execWithOutputModule.execWithOutput('ls', ['-al']),
       'Error: ls -al returned code 1  \nSTDOUT:  \nSTDERR: ${output}'
     )
@@ -57,7 +58,7 @@ tap.test(
   }
 )
 
-tap.test('provides cwd to exec function', async () => {
+test('provides cwd to exec function', async () => {
   const cwd = './'
 
   execStub.resolves(0)
@@ -65,7 +66,7 @@ tap.test('provides cwd to exec function', async () => {
   sinon.assert.calledWithExactly(execStub, 'command', [], sinon.match({ cwd }))
 })
 
-tap.test('rejects if exit code is not 0', async t => {
+test('rejects if exit code is not 0', async () => {
   const errorOutput = 'error output'
 
   execStub.callsFake((_, __, options) => {
@@ -74,11 +75,11 @@ tap.test('rejects if exit code is not 0', async t => {
     return Promise.resolve(1)
   })
 
-  await t.rejects(execWithOutputModule.execWithOutput('command'))
+  await assert.rejects(execWithOutputModule.execWithOutput('command'))
   sinon.assert.calledWithExactly(execStub, 'command', [], sinon.match({}))
 })
 
-tap.test('passes env vars excluding `INPUT_*` env vars', async t => {
+test('passes env vars excluding `INPUT_*` env vars', async () => {
   const INPUT_NPM_TOKEN = 'some-secret-value'
   const INPUT_OPTIC_TOKEN = 'another-secret-value'
   const ACTIONS_ID_TOKEN_REQUEST_URL = 'https://example.com'
@@ -101,33 +102,33 @@ tap.test('passes env vars excluding `INPUT_*` env vars', async t => {
   const envInExec = withEnv.execStub.firstCall.lastArg.env
 
   // Check custom env vars are preserved
-  t.has(envInExec, { ACTIONS_ID_TOKEN_REQUEST_URL })
-  t.has(envInExec, { GITHUB_EVENT_NAME })
+  assert.deepStrictEqual(envInExec.ACTIONS_ID_TOKEN_REQUEST_URL, ACTIONS_ID_TOKEN_REQUEST_URL)
+  assert.deepStrictEqual(envInExec.GITHUB_EVENT_NAME, GITHUB_EVENT_NAME)
 
   // Check INPUT_* env vars are removed
-  t.notHas(envInExec, { INPUT_NPM_TOKEN })
-  t.notHas(envInExec, { INPUT_OPTIC_TOKEN })
+  assert.strictEqual(envInExec.INPUT_NPM_TOKEN, undefined)
+  assert.strictEqual(envInExec.INPUT_OPTIC_TOKEN, undefined)
 
   // Check "real" env vars are preserved.
   // Its value will vary by test runner, so just check it is present.
-  t.hasProp(envInExec, 'NODE')
+  assert.ok(envInExec.NODE)
 })
 
-tap.test('Invalid arguments inputs should not fail', async t => {
+test('Invalid arguments inputs should not fail', async () => {
   const redactedBlankArray = redactConfidentialArguments([])
   const redactedUndefinedArray = redactConfidentialArguments(undefined)
   const redactedNullArray = redactConfidentialArguments(null)
 
-  t.equal(Array.isArray(redactedBlankArray), true)
-  t.equal(Array.isArray(redactedUndefinedArray), true)
-  t.equal(Array.isArray(redactedNullArray), true)
+  assert.strictEqual(Array.isArray(redactedBlankArray), true)
+  assert.strictEqual(Array.isArray(redactedUndefinedArray), true)
+  assert.strictEqual(Array.isArray(redactedNullArray), true)
 
-  t.equal(redactedBlankArray.length, 0)
-  t.equal(redactedUndefinedArray.length, 0)
-  t.equal(redactedNullArray.length, 0)
+  assert.strictEqual(redactedBlankArray.length, 0)
+  assert.strictEqual(redactedUndefinedArray.length, 0)
+  assert.strictEqual(redactedNullArray.length, 0)
 })
 
-tap.test('Valid arguments inputs should pass', async t => {
+test('Valid arguments inputs should pass', async () => {
   const args = ['publish', '--tag', 'latest', '--access', 'public']
 
   const otp = '1827Sdys7'
@@ -141,82 +142,82 @@ tap.test('Valid arguments inputs should pass', async t => {
   const redactedArray3 = redactConfidentialArguments(arrayWithOTPAtEnd)
   const redactedArray4 = redactConfidentialArguments(args)
 
-  t.equal(
+  assert.strictEqual(
     Array.isArray(redactedArray1),
     true,
     'Failed - [Array with OTP] - Output Not An Array'
   )
-  t.equal(
+  assert.strictEqual(
     redactedArray1.length,
     arrayWithOTP.length - 2,
     'Failed - [Array with OTP] - Output Array Length not matching>>'
   )
-  t.equal(
+  assert.strictEqual(
     redactedArray1.includes('--otp'),
     false,
     'Failed - [Array with OTP] - OTP Keyword is found in Output Array'
   )
-  t.equal(
+  assert.strictEqual(
     redactedArray1.includes(otp),
     false,
     'Failed - [Array with OTP] - OTP Value is found in Output Array'
   )
 
-  t.equal(
+  assert.strictEqual(
     Array.isArray(redactedArray2),
     true,
     'Failed - [Array with OTP in start] - Output Not An Array'
   )
-  t.equal(
+  assert.strictEqual(
     redactedArray2.length,
     arrayWithOTPInStart.length - 2,
     'Failed - [Array with OTP in start] - Output Array Length not matching'
   )
-  t.equal(
+  assert.strictEqual(
     redactedArray2.includes('--otp'),
     false,
     'Failed - [Array with OTP in start] - OTP Keyword is found in Output Array'
   )
-  t.equal(
+  assert.strictEqual(
     redactedArray2.includes(otp),
     false,
     'Failed - [Array with OTP in start] - OTP Value is found in Output Array'
   )
 
-  t.equal(
+  assert.strictEqual(
     Array.isArray(redactedArray3),
     true,
     'Failed - [Array with OTP in end] - Output Not An Array'
   )
-  t.equal(
+  assert.strictEqual(
     redactedArray3.length,
     arrayWithOTPAtEnd.length - 2,
     'Failed - [Array with OTP in end] - Output Array Length not matching'
   )
-  t.equal(
+  assert.strictEqual(
     redactedArray3.includes('--otp'),
     false,
     'Failed - [Array with OTP in end] - OTP Keyword is found in Output Array'
   )
-  t.equal(
+  assert.strictEqual(
     redactedArray3.includes(otp),
     false,
     'Failed - [Array with OTP in end] - OTP Value is found in Output Array'
   )
 
-  t.equal(
+  assert.strictEqual(
     Array.isArray(redactedArray4),
     true,
     'Failed - [Array with no OTP] - Output Not An Array'
   )
-  t.equal(
+  assert.strictEqual(
     redactedArray4.length,
     args.length,
     'Failed - [Array with no OTP] - Output Array Length not matching'
   )
 })
 
-tap.test('Otp should be redacted from args in case of an error', async t => {
+test('Otp should be redacted from args in case of an error', async () => {
   const args = ['publish', '--tag', 'latest', '--access', 'public']
 
   const otp = '872333'
@@ -225,58 +226,58 @@ tap.test('Otp should be redacted from args in case of an error', async t => {
   const arrayWithOTPInStart = ['--otp', otp, ...args]
   const arrayWithOTPAtEnd = [...args, '--otp', otp]
 
-  const errorObject1 = await t.rejects(
+  const errorObject1 = await assert.rejects(
     execWithOutputModule.execWithOutput('ls', arrayWithOTP)
   )
-  const errorObject2 = await t.rejects(
+  const errorObject2 = await assert.rejects(
     execWithOutputModule.execWithOutput('ls', arrayWithOTPInStart)
   )
-  const errorObject3 = await t.rejects(
+  const errorObject3 = await assert.rejects(
     execWithOutputModule.execWithOutput('ls', arrayWithOTPAtEnd)
   )
-  const errorObject4 = await t.rejects(
+  const errorObject4 = await assert.rejects(
     execWithOutputModule.execWithOutput('ls', args)
   )
 
-  t.equal(
+  assert.strictEqual(
     errorObject1.message.indexOf('--otp'),
     -1,
     'Failed - [Array with OTP] - OTP Keyword is found in Error Output'
   )
-  t.equal(
+  assert.strictEqual(
     errorObject1.message.indexOf(otp),
     -1,
     'Failed - [Array with OTP] - OTP Value is found in Error Output'
   )
 
-  t.equal(
+  assert.strictEqual(
     errorObject2.message.indexOf('--otp'),
     -1,
     'Failed - [Array with OTP in start] - OTP Keyword is found in Error Output'
   )
-  t.equal(
+  assert.strictEqual(
     errorObject2.message.indexOf(otp),
     -1,
     'Failed - [Array with OTP in start] - OTP Value is found in Error Output'
   )
 
-  t.equal(
+  assert.strictEqual(
     errorObject3.message.indexOf('--otp'),
     -1,
     'Failed - [Array with OTP in end] - OTP Keyword is found in Error Output'
   )
-  t.equal(
+  assert.strictEqual(
     errorObject3.message.indexOf(otp),
     -1,
     'Failed - [Array with OTP in end] - OTP Value is found in Error Output'
   )
 
-  t.equal(
+  assert.strictEqual(
     errorObject4.message.indexOf('--tag') > -1,
     true,
     'Failed - [Array without OTP] - Expected Keyword is not found in Error Output'
   )
-  t.equal(
+  assert.strictEqual(
     errorObject4.message.indexOf('latest') > -1,
     true,
     'Failed - [Array without OTP] - Expected Value is not found in Error Output'

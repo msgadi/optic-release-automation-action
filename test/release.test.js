@@ -1,6 +1,6 @@
 'use strict'
 
-const tap = require('tap')
+const { test } = require('node:test')
 const proxyquire = require('proxyquire')
 const sinon = require('sinon')
 const core = require('@actions/core')
@@ -133,11 +133,11 @@ function setup({ npmVersion, env, isPublished = true, isScoped = true } = {}) {
   }
 }
 
-tap.afterEach(() => {
+test.afterEach(() => {
   sinon.restore()
 })
 
-tap.test('Should delete the release if the pr is not merged', async () => {
+test('Should delete the release if the pr is not merged', async () => {
   const { release } = setup()
   const data = clone(DEFAULT_ACTION_DATA)
   data.context.payload.pull_request.merged = false
@@ -150,7 +150,7 @@ tap.test('Should delete the release if the pr is not merged', async () => {
   })
 })
 
-tap.test(
+test(
   'Should delete the release even if deleting the branch failed and should not fail',
   async () => {
     const { release, stubs } = setup()
@@ -171,7 +171,7 @@ tap.test(
   }
 )
 
-tap.test('Should log an error if deleting the release fails', async () => {
+test('Should log an error if deleting the release fails', async () => {
   const { release, stubs } = setup()
   const data = clone(DEFAULT_ACTION_DATA)
   data.context.payload.pull_request.merged = false
@@ -185,7 +185,7 @@ tap.test('Should log an error if deleting the release fails', async () => {
   )
 })
 
-tap.test(
+test(
   'Should log and exit if both the release and the branch fail',
   async () => {
     const { release, stubs } = setup()
@@ -206,7 +206,7 @@ tap.test(
   }
 )
 
-tap.test('Should publish to npm without optic', async () => {
+test('Should publish to npm without optic', async () => {
   const { release, stubs } = setup()
   await release({
     ...DEFAULT_ACTION_DATA,
@@ -223,7 +223,7 @@ tap.test('Should publish to npm without optic', async () => {
   })
 })
 
-tap.test(
+test(
   'Should publish with provenance if flag set and conditions met',
   async t => {
     const { release, stubs } = setup({
@@ -252,7 +252,7 @@ tap.test(
   }
 )
 
-tap.test('Aborts publish with provenance if NPM version too old', async () => {
+test('Aborts publish with provenance if NPM version too old', async () => {
   const { release, stubs } = setup({
     npmVersion: '9.4.0', // too old (is before 9.5.0)
     env: { ACTIONS_ID_TOKEN_REQUEST_URL: 'https://example.com' }, // valid
@@ -273,7 +273,7 @@ tap.test('Aborts publish with provenance if NPM version too old', async () => {
   )
 })
 
-tap.test('Aborts publish with provenance if missing permission', async () => {
+test('Aborts publish with provenance if missing permission', async () => {
   const { release, stubs } = setup({
     npmVersion: '9.5.0', // valid, but before missing var is correctly handled on NPM's side (9.6.1)
     // missing ACTIONS_ID_TOKEN_REQUEST_URL which is set from `id-token: write` permission.
@@ -294,7 +294,7 @@ tap.test('Aborts publish with provenance if missing permission', async () => {
   )
 })
 
-tap.test('Should publish with --access public if flag set', async t => {
+test('Should publish with --access public if flag set', async t => {
   const { release, stubs } = setup()
   await release({
     ...DEFAULT_ACTION_DATA,
@@ -317,7 +317,7 @@ tap.test('Should publish with --access public if flag set', async t => {
   t.pass('called publishToNpm')
 })
 
-tap.test('Should publish with --access restricted if flag set', async t => {
+test('Should publish with --access restricted if flag set', async t => {
   const { release, stubs } = setup()
   await release({
     ...DEFAULT_ACTION_DATA,
@@ -340,7 +340,7 @@ tap.test('Should publish with --access restricted if flag set', async t => {
   t.pass('called publishToNpm')
 })
 
-tap.test('Should disallow unsupported --access flag', async () => {
+test('Should disallow unsupported --access flag', async () => {
   const { release, stubs } = setup()
 
   const invalidString =
@@ -361,7 +361,7 @@ tap.test('Should disallow unsupported --access flag', async () => {
   )
 })
 
-tap.test(
+test(
   'Should publish with --access public and provenance if unscoped and unpublished',
   async t => {
     const { release, stubs } = setup({
@@ -393,7 +393,7 @@ tap.test(
   }
 )
 
-tap.test(
+test(
   'Should not override access restricted with provenance while unscoped and unpublished',
   async t => {
     const { release, stubs } = setup({
@@ -427,7 +427,7 @@ tap.test(
   }
 )
 
-tap.test(
+test(
   'Should publish with provenance and not add access when scoped and unpublished',
   async t => {
     const { release, stubs } = setup({
@@ -458,7 +458,7 @@ tap.test(
   }
 )
 
-tap.test(
+test(
   'Should publish with provenance and not add access when unscoped and published',
   async t => {
     const { release, stubs } = setup({
@@ -489,7 +489,7 @@ tap.test(
   }
 )
 
-tap.test('Should not publish to npm if there is no npm token', async () => {
+test('Should not publish to npm if there is no npm token', async () => {
   const { release, stubs } = setup()
   stubs.callApiStub.throws()
 
@@ -505,7 +505,7 @@ tap.test('Should not publish to npm if there is no npm token', async () => {
   sinon.assert.notCalled(stubs.publishToNpmStub)
 })
 
-tap.test('Should publish to npm with optic', async () => {
+test('Should publish to npm with optic', async () => {
   const { release, stubs } = setup()
   await release({
     ...DEFAULT_ACTION_DATA,
@@ -523,7 +523,7 @@ tap.test('Should publish to npm with optic', async () => {
   })
 })
 
-tap.test('Should tag versions', async () => {
+test('Should tag versions', async () => {
   const { release, stubs } = setup()
   await release({
     ...DEFAULT_ACTION_DATA,
@@ -540,7 +540,7 @@ tap.test('Should tag versions', async () => {
   sinon.assert.calledWithExactly(stubs.tagVersionStub, 'v5.1.3')
 })
 
-tap.test('Should call the release method', async () => {
+test('Should call the release method', async () => {
   const { release, stubs } = setup()
   await release({
     ...DEFAULT_ACTION_DATA,
@@ -572,7 +572,7 @@ tap.test('Should call the release method', async () => {
   )
 })
 
-tap.test(
+test(
   'Should call the release method with the prerelease flag if the release is a prerelease',
   async () => {
     const { release, stubs } = setup()
@@ -617,7 +617,7 @@ tap.test(
   }
 )
 
-tap.test(
+test(
   "Should NOT call the release method if the pr wasn't merged",
   async () => {
     const { release, stubs } = setup()
@@ -635,7 +635,7 @@ tap.test(
   }
 )
 
-tap.test("Should NOT use npm if the pr wasn't merged", async () => {
+test("Should NOT use npm if the pr wasn't merged", async () => {
   const { release, stubs } = setup()
   const data = clone(DEFAULT_ACTION_DATA)
   data.context.payload.pull_request.merged = false
@@ -649,7 +649,7 @@ tap.test("Should NOT use npm if the pr wasn't merged", async () => {
   sinon.assert.notCalled(stubs.publishToNpmStub)
 })
 
-tap.test("Should NOT tag version in git if the pr wasn't merged", async () => {
+test("Should NOT tag version in git if the pr wasn't merged", async () => {
   const { release, stubs } = setup()
   const data = clone(DEFAULT_ACTION_DATA)
   data.context.payload.pull_request.merged = false
@@ -663,7 +663,7 @@ tap.test("Should NOT tag version in git if the pr wasn't merged", async () => {
   sinon.assert.notCalled(stubs.tagVersionStub)
 })
 
-tap.test(
+test(
   'Should not do anything if the user is not optic-release-automation[bot]',
   async () => {
     const { release, stubs } = setup()
@@ -676,7 +676,7 @@ tap.test(
   }
 )
 
-tap.test('Should fail if the release metadata is incorrect', async () => {
+test('Should fail if the release metadata is incorrect', async () => {
   const { release, stubs } = setup()
   const data = clone(DEFAULT_ACTION_DATA)
   data.context.payload.pull_request.body = 'this data is not correct'
@@ -687,7 +687,7 @@ tap.test('Should fail if the release metadata is incorrect', async () => {
   sinon.assert.notCalled(stubs.execWithOutputStub)
 })
 
-tap.test(
+test(
   'Should call core.setFailed if the tagging the version in git fails',
   async () => {
     const { release, stubs } = setup()
@@ -707,7 +707,7 @@ tap.test(
   }
 )
 
-tap.test('Should call core.setFailed if the release fails', async () => {
+test('Should call core.setFailed if the release fails', async () => {
   const { release, stubs } = setup()
   stubs.callApiStub.throws()
 
@@ -726,7 +726,7 @@ tap.test('Should call core.setFailed if the release fails', async () => {
   sinon.assert.calledOnce(stubs.coreStub.setFailed)
 })
 
-tap.test(
+test(
   'Should call core.setFailed but not revert the commit when publish to npm fails',
   async () => {
     const { release, stubs } = setup()
@@ -747,7 +747,7 @@ tap.test(
   }
 )
 
-tap.test(
+test(
   'Should call core.setFailed and revert the commit when publish to npm fails',
   async () => {
     const { release, stubs } = setup()
@@ -769,7 +769,7 @@ tap.test(
   }
 )
 
-tap.test('Should tag the major, minor & patch correctly for 0', async () => {
+test('Should tag the major, minor & patch correctly for 0', async () => {
   const { release, stubs } = setup()
   stubs.callApiStub.throws()
 
@@ -792,7 +792,7 @@ tap.test('Should tag the major, minor & patch correctly for 0', async () => {
   sinon.assert.calledWithExactly(stubs.tagVersionStub, 'v0.0.1')
 })
 
-tap.test('Should tag the major, minor & patch correctly', async () => {
+test('Should tag the major, minor & patch correctly', async () => {
   const { release, stubs } = setup()
   stubs.callApiStub.throws()
 
@@ -815,7 +815,7 @@ tap.test('Should tag the major, minor & patch correctly', async () => {
   sinon.assert.calledWithExactly(stubs.tagVersionStub, 'v5.0.0')
 })
 
-tap.test(
+test(
   'Should delete the release branch ALWAYS when the PR is closed',
   async () => {
     const { release, stubs } = setup()
@@ -840,7 +840,7 @@ tap.test(
   }
 )
 
-tap.test(
+test(
   'Should NOT delete the release branch if the PR is not closed',
   async () => {
     const { release, stubs } = setup()
@@ -865,7 +865,7 @@ tap.test(
   }
 )
 
-tap.test(
+test(
   'Should call notifyIssues function correctly when feature is enabled',
   async () => {
     const { release, stubs } = setup()
@@ -889,7 +889,7 @@ tap.test(
   }
 )
 
-tap.test(
+test(
   'Should not call notifyIssues function when feature is disabled',
   async () => {
     const { release, stubs } = setup()
@@ -906,7 +906,7 @@ tap.test(
   }
 )
 
-tap.test('Should not reject when notifyIssues fails', async t => {
+test('Should not reject when notifyIssues fails', async t => {
   const { release, stubs } = setup()
 
   stubs.notifyIssuesStub.rejects()
@@ -923,7 +923,7 @@ tap.test('Should not reject when notifyIssues fails', async t => {
   )
 })
 
-tap.test('Should fail when getting draft release fails', async () => {
+test('Should fail when getting draft release fails', async () => {
   const { release, stubs } = setup()
 
   await release({
@@ -943,7 +943,7 @@ tap.test('Should fail when getting draft release fails', async () => {
   sinon.assert.called(stubs.coreStub.setFailed)
 })
 
-tap.test('Should fail when release is not found', async () => {
+test('Should fail when release is not found', async () => {
   const { release, stubs } = setup()
 
   await release({
@@ -966,7 +966,7 @@ tap.test('Should fail when release is not found', async () => {
   )
 })
 
-tap.test('Should not fail when release is not a draft', async () => {
+test('Should not fail when release is not a draft', async () => {
   const { release, stubs } = setup()
 
   await release({
