@@ -1,6 +1,7 @@
 'use strict'
 
-const tap = require('tap')
+const { test, mock } = require('node:test')
+const assert = require('assert')
 const sinon = require('sinon')
 const actionLog = require('../src/log')
 
@@ -9,7 +10,7 @@ const TAG = 'v1.0.1'
 
 const setup = ({ throwsError }) => {
   const logStub = sinon.stub(actionLog)
-  const releasesModule = tap.mock('../src/utils/releases.js', {
+  const releasesModule = mock('../src/utils/releases.js', {
     '../src/log.js': logStub,
     '@actions/github': {
       context: {
@@ -57,50 +58,50 @@ const setup = ({ throwsError }) => {
   return { logStub, releasesModule }
 }
 
-tap.afterEach(() => {
+test.afterEach(() => {
   sinon.restore()
 })
 
-tap.test('fetchLatestRelease return properly the latest release', async t => {
+test('fetchLatestRelease return properly the latest release', async () => {
   const { releasesModule } = setup({ throwsError: false })
 
-  await t.resolves(releasesModule.fetchLatestRelease(TOKEN))
+  await assert.doesNotReject(releasesModule.fetchLatestRelease(TOKEN))
 })
 
-tap.test(
+test(
   'fetchLatestRelease throws an error if an exception occurs while calling GitHub APIs',
-  async t => {
+  async () => {
     const { releasesModule } = setup({ throwsError: true })
 
-    await t.rejects(releasesModule.fetchLatestRelease(TOKEN))
+    await assert.rejects(releasesModule.fetchLatestRelease(TOKEN))
   }
 )
 
-tap.test(
+test(
   'generateReleaseNotes return properly the generated release notes',
-  async t => {
+  async () => {
     const { releasesModule } = setup({ throwsError: false })
 
-    await t.resolves(
+    await assert.doesNotReject(
       releasesModule.generateReleaseNotes(TOKEN, '1.1.0', '1.0.0')
     )
   }
 )
 
-tap.test(
+test(
   'generateReleaseNotes throws an error if an exception occurs while calling GitHub APIs',
-  async t => {
+  async () => {
     const { releasesModule } = setup({ throwsError: true })
 
-    await t.rejects(releasesModule.generateReleaseNotes(TOKEN))
+    await assert.rejects(releasesModule.generateReleaseNotes(TOKEN))
   }
 )
 
-tap.test(
+test(
   'fetchLatestRelease returns null if no previous releases are found',
-  async t => {
+  async () => {
     const logStub = sinon.stub(actionLog)
-    const releasesModule = tap.mock('../src/utils/releases.js', {
+    const releasesModule = mock('../src/utils/releases.js', {
       '../src/log.js': logStub,
       '@actions/github': {
         context: {
@@ -121,28 +122,28 @@ tap.test(
       },
     })
 
-    await t.resolves(releasesModule.fetchLatestRelease(TOKEN))
+    await assert.doesNotReject(releasesModule.fetchLatestRelease(TOKEN))
   }
 )
 
-tap.test('fetchReleaseByTag return properly the specified release', async t => {
+test('fetchReleaseByTag return properly the specified release', async () => {
   const { releasesModule } = setup({ throwsError: false })
 
-  await t.resolves(releasesModule.fetchReleaseByTag(TOKEN, TAG))
+  await assert.doesNotReject(releasesModule.fetchReleaseByTag(TOKEN, TAG))
 })
 
-tap.test(
+test(
   'fetchReleaseByTag throws an error if an exception occurs while calling GitHub APIs',
-  async t => {
+  async () => {
     const { releasesModule } = setup({ throwsError: true })
 
-    await t.rejects(releasesModule.fetchReleaseByTag(TOKEN, TAG))
+    await assert.rejects(releasesModule.fetchReleaseByTag(TOKEN, TAG))
   }
 )
 
-tap.test('fetchReleaseByTag throws an error if Not Found', async t => {
+test('fetchReleaseByTag throws an error if Not Found', async () => {
   const logStub = sinon.stub(actionLog)
-  const releasesModule = tap.mock('../src/utils/releases.js', {
+  const releasesModule = mock('../src/utils/releases.js', {
     '../src/log.js': logStub,
     '@actions/github': {
       context: {
@@ -163,5 +164,5 @@ tap.test('fetchReleaseByTag throws an error if Not Found', async t => {
     },
   })
 
-  await t.rejects(releasesModule.fetchReleaseByTag(TOKEN, TAG))
+  await assert.rejects(releasesModule.fetchReleaseByTag(TOKEN, TAG))
 })

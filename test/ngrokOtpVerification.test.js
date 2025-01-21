@@ -1,6 +1,6 @@
 'use strict'
 
-const tap = require('tap')
+const { test } = require('node:test')
 const sinon = require('sinon')
 const proxyquire = require('proxyquire')
 
@@ -42,11 +42,11 @@ const setup = () => {
   }
 }
 
-tap.afterEach(() => {
+test.afterEach(() => {
   sinon.restore()
 })
 
-tap.test('Should successfully verify OTP', async t => {
+test('Should successfully verify OTP', async t => {
   const { ngrokOtpVerificationProxy, mockApp } = setup()
 
   // Capture the OTP callback
@@ -78,7 +78,7 @@ tap.test('Should successfully verify OTP', async t => {
   t.equal(otp, '123456', 'should return submitted OTP')
 })
 
-tap.test('Should timeout after 5 minutes', async t => {
+test('Should timeout after 5 minutes', async t => {
   const { ngrokOtpVerificationProxy, logErrorStub } = setup()
 
   // Use fake timers
@@ -104,7 +104,7 @@ tap.test('Should timeout after 5 minutes', async t => {
   }
 })
 
-tap.test('Should handle HTML template rendering', async t => {
+test('Should handle HTML template rendering', async t => {
   const { ngrokOtpVerificationProxy, mockApp } = setup()
 
   let renderedHtml
@@ -147,7 +147,7 @@ tap.test('Should handle HTML template rendering', async t => {
   t.match(renderedHtml, /v1.0.0/, 'should include package version')
 })
 
-tap.test(
+test(
   'Should handle the failure case when fastify app or html fails to load',
   async t => {
     const { ngrokOtpVerificationProxy, mockApp } = setup()

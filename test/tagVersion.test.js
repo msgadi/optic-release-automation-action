@@ -1,6 +1,6 @@
 'use strict'
 
-const tap = require('tap')
+const { test } = require('node:test')
 const sinon = require('sinon')
 const proxyquire = require('proxyquire')
 
@@ -13,16 +13,16 @@ const setup = () => {
   return { execWithOutputStub, tagVersionProxy }
 }
 
-tap.afterEach(() => {
+test.afterEach(() => {
   sinon.restore()
 })
 
-tap.test('Tag version in git', async t => {
+test('Tag version in git', async () => {
   const { tagVersionProxy, execWithOutputStub } = setup()
   const version = 'v3.0.0'
   await tagVersionProxy.tagVersionInGit(version)
 
-  t.ok(execWithOutputStub.callCount === 2)
+  assert.strictEqual(execWithOutputStub.callCount, 2)
 
   sinon.assert.calledWithExactly(execWithOutputStub, 'git', [
     'tag',

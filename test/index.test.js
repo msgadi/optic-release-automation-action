@@ -1,6 +1,6 @@
 'use strict'
 
-const tap = require('tap')
+const { test } = require('node:test')
 const proxyquire = require('proxyquire').noCallThru()
 const sinon = require('sinon')
 
@@ -51,7 +51,7 @@ function buildStubbedAction() {
   }
 }
 
-tap.afterEach(() => {
+test.afterEach(() => {
   sinon.restore()
 })
 
@@ -74,7 +74,7 @@ const DEFAULT_ACTION_DATA = {
   },
 }
 
-tap.test(
+test(
   'should not run if the event is not workflow_dispatch or pull_request',
   async () => {
     const { action, stubs } = buildStubbedAction()
@@ -90,7 +90,7 @@ tap.test(
   }
 )
 
-tap.test(
+test(
   "the release feature should be called if it's a pull request",
   async () => {
     const { action, stubs } = buildStubbedAction()
@@ -107,7 +107,7 @@ tap.test(
   }
 )
 
-tap.test(
+test(
   "the bump feature should be called if it's a workflow_dispatch",
   async () => {
     const { action, stubs } = buildStubbedAction()
@@ -124,7 +124,7 @@ tap.test(
   }
 )
 
-tap.test(
+test(
   'npm should be configured if called with npm-token in inputs',
   async () => {
     const { action, stubs } = buildStubbedAction()
@@ -144,7 +144,7 @@ tap.test(
   }
 )
 
-tap.test(
+test(
   'semver-auto: should call getAutoBumpedVersion if semver is auto',
   async t => {
     const { bumpVersion, stubs } = buildStubbedAction()
@@ -169,7 +169,7 @@ tap.test(
   }
 )
 
-tap.test(
+test(
   'semver-auto: should not call getAutoBumpedVersion if semver is not auto',
   async t => {
     const { bumpVersion, stubs } = buildStubbedAction()
@@ -187,7 +187,7 @@ tap.test(
   }
 )
 
-tap.test('semver-auto: should bump major if breaking change', async t => {
+test('semver-auto: should bump major if breaking change', async t => {
   const { bumpVersion, stubs } = buildStubbedAction()
 
   stubs.bumpStub.resolves({ releaseType: 'major' })
@@ -209,7 +209,7 @@ tap.test('semver-auto: should bump major if breaking change', async t => {
   t.same(newVersion, '3.0.0')
 })
 
-tap.test('semver-auto: should bump minor if its a feat', async t => {
+test('semver-auto: should bump minor if its a feat', async t => {
   const { bumpVersion, stubs } = buildStubbedAction()
 
   stubs.bumpStub.resolves({ releaseType: 'minor' })
@@ -231,7 +231,7 @@ tap.test('semver-auto: should bump minor if its a feat', async t => {
   t.same(newVersion, '3.0.0')
 })
 
-tap.test('semver-auto: should bump patch if its a fix', async t => {
+test('semver-auto: should bump patch if its a fix', async t => {
   const { bumpVersion, stubs } = buildStubbedAction()
 
   stubs.bumpStub.resolves({ releaseType: 'patch' })
@@ -253,7 +253,7 @@ tap.test('semver-auto: should bump patch if its a fix', async t => {
   t.same(newVersion, '3.0.0')
 })
 
-tap.test(
+test(
   'semver-auto: should use the correct base tag if specified',
   async t => {
     const { bumpVersion, stubs } = buildStubbedAction()
@@ -282,7 +282,7 @@ tap.test(
   }
 )
 
-tap.test(
+test(
   'semver-auto: should get the latest tag if base tag not provided',
   async t => {
     const { bumpVersion, stubs } = buildStubbedAction()
@@ -312,7 +312,7 @@ tap.test(
   }
 )
 
-tap.test('semver-auto: should throw if auto bump fails', async t => {
+test('semver-auto: should throw if auto bump fails', async t => {
   const { bumpVersion, stubs } = buildStubbedAction()
 
   stubs.bumpStub.throws(new Error('bump failed'))
@@ -329,7 +329,7 @@ tap.test('semver-auto: should throw if auto bump fails', async t => {
   }
 })
 
-tap.test('semver-auto: should default to patch if auto bump fails', async t => {
+test('semver-auto: should default to patch if auto bump fails', async t => {
   const { bumpVersion, stubs } = buildStubbedAction()
 
   stubs.bumpStub.resolves({})

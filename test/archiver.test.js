@@ -1,9 +1,10 @@
 'use strict'
 
-const tap = require('tap')
+const { test, mock } = require('node:test')
+const assert = require('assert')
 
 const setup = ({ isDirectory }) => {
-  const archiverModule = tap.mock('../src/utils/archiver.js', {
+  const archiverModule = mock('../src/utils/archiver.js', {
     'fs/promises': {
       lstat: async () => ({
         isDirectory: () => isDirectory,
@@ -25,8 +26,8 @@ const setup = ({ isDirectory }) => {
   return { archiverModule }
 }
 
-tap.test('throws an error if path not found', async t => {
-  const archiverModule = tap.mock('../src/utils/archiver.js', {
+test('throws an error if path not found', async () => {
+  const archiverModule = mock('../src/utils/archiver.js', {
     'fs/promises': {
       lstat: async () => ({
         isDirectory: () => {
@@ -36,17 +37,17 @@ tap.test('throws an error if path not found', async t => {
     },
   })
 
-  await t.rejects(archiverModule.archiveItem('path', 'out.zip'))
+  await assert.rejects(archiverModule.archiveItem('path', 'out.zip'))
 })
 
-tap.test('does not throw any errors if directory', async t => {
+test('does not throw any errors if directory', async () => {
   const { archiverModule } = setup({ isDirectory: true })
 
-  await t.resolves(archiverModule.archiveItem('path', 'out.zip'))
+  await assert.doesNotReject(archiverModule.archiveItem('path', 'out.zip'))
 })
 
-tap.test('throws if writing to zip file fails', async t => {
-  const archiverModule = tap.mock('../src/utils/archiver.js', {
+test('throws if writing to zip file fails', async () => {
+  const archiverModule = mock('../src/utils/archiver.js', {
     'fs/promises': {
       lstat: async () => ({
         isDirectory: () => true,
@@ -65,11 +66,11 @@ tap.test('throws if writing to zip file fails', async t => {
     },
   })
 
-  await t.rejects(archiverModule.archiveItem('path', 'out.zip'))
+  await assert.rejects(archiverModule.archiveItem('path', 'out.zip'))
 })
 
-tap.test('resolves if a path is not a directory', async t => {
-  const archiverModule = tap.mock('../src/utils/archiver.js', {
+test('resolves if a path is not a directory', async () => {
+  const archiverModule = mock('../src/utils/archiver.js', {
     'fs/promises': {
       lstat: async () => ({
         isDirectory: () => false,
@@ -88,11 +89,11 @@ tap.test('resolves if a path is not a directory', async t => {
     },
   })
 
-  await t.resolves(archiverModule.archiveItem('path', 'out.zip'))
+  await assert.doesNotReject(archiverModule.archiveItem('path', 'out.zip'))
 })
 
-tap.test('does not throw any errors if file', async t => {
+test('does not throw any errors if file', async () => {
   const { archiverModule } = setup({ isDirectory: false })
 
-  await t.resolves(archiverModule.archiveItem('file.js', 'out.zip'))
+  await assert.doesNotReject(archiverModule.archiveItem('file.js', 'out.zip'))
 })

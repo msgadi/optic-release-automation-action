@@ -1,6 +1,7 @@
 'use strict'
 
-const { test } = require('tap')
+const { test } = require('node:test')
+const assert = require('assert')
 const _template = require('lodash.template')
 const fs = require('fs')
 const path = require('path')
@@ -40,7 +41,7 @@ test('Should return the correct PR numbers', async t => {
   const result = getPrNumbersFromReleaseNotes(testReleaseNotes)
   const expected = ['13', '15', '16', '18', '42', '50', '52', '53']
 
-  t.same(result, expected)
+  assert.deepStrictEqual(result, expected)
 })
 
 test('Should return truncated PR body', async t => {
@@ -77,7 +78,7 @@ test('Should return truncated PR body', async t => {
     longPrBody = longPrBody + testReleaseNotes
   }
 
-  t.ok(longPrBody.length > 60000)
+  assert.ok(longPrBody.length > 60000)
 
   const truncatedPrBody = getPRBody(_template(tpl), {
     newVersion: '1.0.0',
@@ -86,8 +87,8 @@ test('Should return truncated PR body', async t => {
     author: 'test',
     artifact: null,
   })
-  t.ok(truncatedPrBody.length < 65536)
-  t.ok(
+  assert.ok(truncatedPrBody.length < 65536)
+  assert.ok(
     truncatedPrBody.includes(
       `<release-meta>{"id":1,"version":"1.0.0"}</release-meta>`
     )
